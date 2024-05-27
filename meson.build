@@ -4,6 +4,7 @@ project(
   default_options: [
     'default_library=static',
     'c_std=c2x',
+    'warning_level=everything',
   ],
   subproject_dir: 'external'
 )
@@ -12,6 +13,12 @@ src = []
 dep = []
 inc = []
 arg = []
+
+arg += '-Wno-unsafe-buffer-usage'
+arg += '-Wno-unused-macros'
+arg += '-Wno-reserved-macro-identifier'
+arg += '-Wno-declaration-after-statement'
+arg += '-Wno-missing-variable-declarations'
 
 cmake = import('cmake')
 raylib = cmake.subproject('raylib')
