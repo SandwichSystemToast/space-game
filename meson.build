@@ -4,7 +4,6 @@ project(
   default_options: [
     'default_library=static',
     'c_std=c2x',
-    'warning_level=everything',
   ],
   subproject_dir: 'external'
 )
@@ -15,13 +14,18 @@ inc = []
 arg = []
 
 arg += '-Wno-unsafe-buffer-usage'
+arg += '-Wno-unsafe-buffer-usage'
 arg += '-Wno-unused-macros'
 arg += '-Wno-reserved-macro-identifier'
 arg += '-Wno-declaration-after-statement'
 arg += '-Wno-missing-variable-declarations'
+arg += '-Wno-pre-c2x-compat'
+arg += '-Wno-padded'
 
 cmake = import('cmake')
 raylib = cmake.subproject('raylib')
+raylib_opt = cmake.subproject_options()
+raylib_opt.set_override_option('c_std', 'c99')
 dep += raylib.dependency('raylib')
 
 cc = meson.get_compiler('c')
@@ -34,6 +38,6 @@ executable(
   src,
   dependencies : dep,
   include_directories : inc,
-  cpp_args : arg,
+  c_args : arg,
   install : true
 )
