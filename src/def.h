@@ -1,8 +1,8 @@
 #pragma once
 
+#include <math.h>
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <raylib.h>
 
 #include <stdint.h>
 
@@ -16,7 +16,13 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
+typedef float_t f32;
+
 typedef size_t z;
+
+typedef Vector2 v2;
+typedef Vector3 v3;
+typedef Vector4 v4;
 
 #define PANIC(msg, ...)                                                        \
   {                                                                            \
