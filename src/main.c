@@ -9,22 +9,42 @@
 
 #include "flecs/flecs.h"
 
+#include "player/character.h"
+#include "player/input.h"
+
 int main(void) {
   ecs_world_t *world = ecs_init();
+
+  ECS_COMPONENT(world, player_input);
+  ECS_COMPONENT(world, player_character);
+
+  ECS_SYSTEM(world, move_player_character, EcsOnUpdate, player_character,
+             player_input($));
+  ECS_SYSTEM(world, accept_input, EcsOnUpdate, player_input($));
+
+  ecs_singleton_set(world, player_input, {0});
+  ecs_entity_t player = ecs_new_id(world);
+  ecs_set(world, player, player_character, {});
+
   InitPhysics();
   InitWindow(800, 450, "raylib [core] example - basic window");
 
   // https://github.com/id-Software/Quake/blob/master/WinQuake/sv_user.c#L190
-  v2 position = {0, 0};
-  v2 velocity = {0, 0};
-  f32 max_speed = 240.;
-  f32 max_acceleration = 10. * max_speed;
-  f32 drag = 10.;
+  SetTargetFPS(60);
 
   f32 mouse_look_weight = 0.1;
-    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
+  SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
 
   while (!WindowShouldClose()) {
+    ecs_progress(world, GetFrameTime());
+    
+    const player_character *character =
+        ecs_get(world, player, player_character);
+    const player_input *input = ecs_singleton_get(world, player_input);
+
+    v2 position = character->position;
+    v2 velocity = character->velocity;
+
     Camera2D cam;
     cam.rotation = 0.;
     cam.zoom = 1.2;
@@ -38,37 +58,11 @@ int main(void) {
     BeginMode2D(cam);
     ClearBackground(BLACK);
 
-    f32 dt = GetFrameTime();
-    v2 direction = {0};
-    if (IsKeyDown(KEY_D))
-      direction.x += 1.;
-    if (IsKeyDown(KEY_A))
-      direction.x -= 1;
-    if (IsKeyDown(KEY_W))
-      direction.y -= 1;
-    if (IsKeyDown(KEY_S))
-      direction.y += 1;
-    direction = Vector2Normalize(direction);
-    velocity = Vector2Scale(velocity, (1 - drag * dt));
-
-    f32 current_speed = Vector2DotProduct(velocity, direction);
-    if (current_speed > max_speed)
-      current_speed = max_speed;
-    f32 acceleration = max_speed - current_speed;
-    if (acceleration < 0.)
-      acceleration = 0.;
-    else if (acceleration > max_acceleration * dt)
-      acceleration = max_acceleration * dt;
-
-    velocity = Vector2Add(velocity, Vector2Scale(direction, acceleration));
-    position = Vector2Add(position, Vector2Scale(velocity, dt));
-
-    DrawLineV(position, Vector2Add(position, Vector2Scale(direction, 40.)),
-              BLUE);
+    DrawLineV(position,
+              Vector2Add(position, Vector2Scale(input->direction, 40.)), BLUE);
     DrawLineV(position, Vector2Add(position, velocity), RED);
 
 #define FOV_ANGLE 40. * DEG2RAD
-
     // Vision Cone
     DrawLineV(position,
               Vector2Add(Vector2Scale(Vector2Normalize(Vector2Rotate(
@@ -95,6 +89,7 @@ int main(void) {
 
   CloseWindow();
   ClosePhysics();
+
   ecs_fini(world);
 
   return 0;

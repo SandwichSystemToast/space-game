@@ -4,10 +4,10 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
-#include <stddef.h>
 #include <raylib.h>
-
+#include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -29,7 +29,7 @@ typedef Vector4 v4;
 
 #define PANIC(msg, ...)                                                        \
   {                                                                            \
-    fprintf(stderr, __FILE__ ":%d\n" msg "\n", __LINE__, ##__VA_ARGS__);            \
+    fprintf(stderr, __FILE__ ":%d\n" msg "\n", __LINE__, ##__VA_ARGS__);       \
     exit(2);                                                                   \
   }
 
