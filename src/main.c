@@ -22,10 +22,9 @@ int main(void) {
   f32 drag = 10.;
 
   f32 mouse_look_weight = 0.1;
-
-  while (!WindowShouldClose()) {
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
 
+  while (!WindowShouldClose()) {
     Camera2D cam;
     cam.rotation = 0.;
     cam.zoom = 1.2;
