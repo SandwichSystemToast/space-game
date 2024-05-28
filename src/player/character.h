@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../core/transform.h"
 #include "../def.h"
 #include "flecs/flecs.h"
 
@@ -10,15 +11,17 @@
 #define CHARACTER_DRAG 10.
 
 typedef struct player_character {
-  v2 position;
   v2 velocity;
 } c_player_character;
+
+ECS_COMPONENT_DECLARE(c_player_character);
 
 void move_player_character(ecs_iter_t *it) {
   f32 dt = it->delta_time;
 
   c_player_character *character = ecs_field(it, c_player_character, 1);
-  const c_player_input *input = ecs_field(it, c_player_input, 2);
+  c_transform *transform = ecs_field(it, c_transform, 2);
+  const c_player_input *input = ecs_field(it, c_player_input, 3);
 
   EXPECT(it->count <= 1,
          "More than two players controlled at a time, possibly a bug");
@@ -37,6 +40,6 @@ void move_player_character(ecs_iter_t *it) {
 
   character->velocity = Vector2Add(
       character->velocity, Vector2Scale(input->direction, acceleration));
-  character->position =
-      Vector2Add(character->position, Vector2Scale(character->velocity, dt));
+  transform->position =
+      Vector2Add(transform->position, Vector2Scale(character->velocity, dt));
 }

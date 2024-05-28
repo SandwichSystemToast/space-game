@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../core/transform.h"
 #include "../def.h"
-#include "../player/character.h"
 #include "flecs.h"
 #include "raylib.h"
 
@@ -11,7 +11,10 @@
 typedef struct {
   Camera2D cam2d;
   float mouse_look_weight;
+  ecs_entity_t look_at;
 } c_camera;
+
+ECS_COMPONENT_DECLARE(c_camera);
 
 c_camera camera_new() {
   c_camera ret;
@@ -28,11 +31,13 @@ v2 c_camera_relative_mouse_position(const c_camera *cam) {
 }
 
 void camera_follow(ecs_iter_t *it) {
-  c_player_character *character = ecs_field(it, c_player_character, 1);
-  c_camera *cam = ecs_field(it, c_camera, 2);
+  c_camera *cam = ecs_field(it, c_camera, 1);
 
-  EXPECT(it->count != 0, "No cameras in the scene, impossible to follow");
-  EXPECT(it->count == 1, "More than one camera at a time");
+  EXPECT(ecs_is_valid(it->world, cam->look_at),
+         "The camera target is expected to be alive");
+  EXPECT(ecs_has(it->world, cam->look_at, c_transform),
+         "The camera target does not have a transform component");
+  const c_transform *transform = ecs_get(it->world, cam->look_at, c_transform);
 
   // TODO: deduce if the camera should look at the ship or something else
   Camera2D *cam2d = &cam->cam2d;
@@ -44,5 +49,5 @@ void camera_follow(ecs_iter_t *it) {
 
   v2 mouse_pos = c_camera_relative_mouse_position(cam);
   cam2d->target = Vector2Add(Vector2Scale(mouse_pos, cam->mouse_look_weight),
-                             character->position);
+                             transform->position);
 }

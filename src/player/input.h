@@ -10,6 +10,8 @@ typedef struct {
   v2 direction;
 } c_player_input;
 
+ECS_COMPONENT_DECLARE(c_player_input);
+
 void accept_input(ecs_iter_t *it) {
   c_player_input *input = ecs_field(it, c_player_input, 1);
 
