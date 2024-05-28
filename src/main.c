@@ -13,12 +13,18 @@ int main(void) {
   f32 max_acceleration = 10. * max_speed;
   f32 drag = 10.;
 
+  f32 mouse_look_weight = 0.1;
+
   while (!WindowShouldClose()) {
     Camera2D cam;
     cam.rotation = 0.;
-    cam.zoom = 1.;
+    cam.zoom = 1.2;
     cam.offset.x = GetScreenWidth() / 2.;
     cam.offset.y = GetScreenHeight() / 2.;
+    cam.target =
+        Vector2Add(Vector2Scale(Vector2Subtract(GetMousePosition(), cam.offset),
+                                mouse_look_weight),
+                   position);
 
     BeginMode2D(cam);
     ClearBackground(BLACK);
@@ -48,11 +54,30 @@ int main(void) {
     velocity = Vector2Add(velocity, Vector2Scale(direction, acceleration));
     position = Vector2Add(position, Vector2Scale(velocity, dt));
 
-    DrawLineV(
-        position,
-        Vector2Add(position, Vector2Scale(direction, 40.)),
-        BLUE);
+    DrawLineV(position, Vector2Add(position, Vector2Scale(direction, 40.)),
+              BLUE);
     DrawLineV(position, Vector2Add(position, velocity), RED);
+
+#define FOV_ANGLE 40. * DEG2RAD
+
+    // Vision Cone
+    DrawLineV(position,
+              Vector2Add(Vector2Scale(Vector2Normalize(Vector2Rotate(
+                                          Vector2Subtract(cam.target, position),
+                                          FOV_ANGLE)),
+                                      10000.),
+                         position),
+              GRAY);
+
+    DrawLineV(position,
+              Vector2Add(Vector2Scale(Vector2Normalize(Vector2Rotate(
+                                          Vector2Subtract(cam.target, position),
+                                          -FOV_ANGLE)),
+                                      10000.),
+                         position),
+              GRAY);
+
+    DrawCircleV(Vector2Zero(), 10, GREEN);
 
     DrawCircleV(position, 15., WHITE);
     EndDrawing();
