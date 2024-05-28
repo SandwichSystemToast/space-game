@@ -1,5 +1,9 @@
 #include "def.h"
 
+#define PHYSAC_IMPLEMENTATION
+#include "physac/src/physac.h"
+#undef PHYSAC_IMPLEMENTATION
+
 #include "raylib.h"
 #include "raymath.h"
 
@@ -82,10 +86,10 @@ int main(void) {
     DrawCircleV(Vector2Zero(), 10, GREEN);
 
     DrawCircleV(position, 15., WHITE);
-    EndDrawing();
-  }
 
   CloseWindow();
+
+  ClosePhysics();
 
   return 0;
 }
