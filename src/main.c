@@ -13,6 +13,8 @@ int main(void) {
   f32 max_acceleration = 10. * max_speed;
   f32 drag = 10.;
 
+  SetTargetFPS(60);
+
   f32 mouse_look_weight = 0.1;
 
   while (!WindowShouldClose()) {
