@@ -3,7 +3,7 @@ project(
   'c',
   default_options: [
     'default_library=static',
-    'c_std=c2x',
+    'c_std=gnu2x',
   ],
   subproject_dir: 'external'
 )

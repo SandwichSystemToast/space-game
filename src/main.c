@@ -8,6 +8,7 @@
 #include "raymath.h"
 
 int main(void) {
+  InitPhysics();
   InitWindow(800, 450, "Space Game");
 
   // https://github.com/id-Software/Quake/blob/master/WinQuake/sv_user.c#L190
@@ -87,8 +88,10 @@ int main(void) {
 
     DrawCircleV(position, 15., WHITE);
 
-  CloseWindow();
+    EndDrawing();
+  }
 
+  CloseWindow();
   ClosePhysics();
 
   return 0;
