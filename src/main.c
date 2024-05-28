@@ -7,33 +7,21 @@
 #include "physac/src/physac.h"
 #undef PHYSAC_IMPLEMENTATION
 
-#include "flecs/flecs.h"
-
 #include "player/character.h"
 #include "player/input.h"
+#include "rendering/camera.h"
+#include "rendering/rendering.h"
 
 void render_player(ecs_iter_t *it) {
-  player_character *character = ecs_field(it, player_character, 1);
-  const player_input *input = ecs_field(it, player_input, 2);
+  c_player_character *character = ecs_field(it, c_player_character, 1);
+  const c_player_input *input = ecs_field(it, c_player_input, 2);
+  const c_camera *cam = ecs_field(it, c_camera, 3);
 
   if (it->count == 0)
     return;
 
   EXPECT(it->count == 1, "Too many players to draw");
 
-  f32 mouse_look_weight = 0.1;
-
-  Camera2D cam;
-  cam.rotation = 0.;
-  cam.zoom = 1.2;
-  cam.offset.x = GetScreenWidth() / 2.;
-  cam.offset.y = GetScreenHeight() / 2.;
-  cam.target =
-      Vector2Add(Vector2Scale(Vector2Subtract(GetMousePosition(), cam.offset),
-                              mouse_look_weight),
-                 character->position);
-
-  BeginMode2D(cam);
   ClearBackground(BLACK);
 
   DrawLineV(
@@ -44,47 +32,56 @@ void render_player(ecs_iter_t *it) {
             Vector2Add(character->position, character->velocity), RED);
 
 #define FOV_ANGLE 40. * DEG2RAD
+
   // Vision Cone
   DrawLineV(character->position,
-            Vector2Add(Vector2Scale(
-                           Vector2Normalize(Vector2Rotate(
-                               Vector2Subtract(cam.target, character->position),
-                               FOV_ANGLE)),
-                           10000.),
+            Vector2Add(Vector2Scale(Vector2Normalize(Vector2Rotate(
+                                        Vector2Subtract(cam->cam2d.target,
+                                                        character->position),
+                                        FOV_ANGLE)),
+                                    10000.),
                        character->position),
             GRAY);
 
   DrawLineV(character->position,
-            Vector2Add(Vector2Scale(
-                           Vector2Normalize(Vector2Rotate(
-                               Vector2Subtract(cam.target, character->position),
-                               -FOV_ANGLE)),
-                           10000.),
+            Vector2Add(Vector2Scale(Vector2Normalize(Vector2Rotate(
+                                        Vector2Subtract(cam->cam2d.target,
+                                                        character->position),
+                                        -FOV_ANGLE)),
+                                    10000.),
                        character->position),
             GRAY);
 
   DrawCircleV(Vector2Zero(), 10, GREEN);
 
   DrawCircleV(character->position, 15., WHITE);
-
-  EndDrawing();
 }
 
 int main(void) {
   ecs_world_t *world = ecs_init();
 
-  ECS_COMPONENT(world, player_input);
-  ECS_COMPONENT(world, player_character);
+  ECS_COMPONENT(world, c_player_input);
+  ECS_COMPONENT(world, c_player_character);
+  ECS_COMPONENT(world, c_camera);
 
-  ECS_SYSTEM(world, move_player_character, EcsOnUpdate, player_character,
-             player_input($));
-  ECS_SYSTEM(world, accept_input, EcsOnUpdate, player_input($));
-  ECS_SYSTEM(world, render_player, EcsOnUpdate, player_character,
-             player_input($));
+  ECS_SYSTEM(world, move_player_character, EcsOnUpdate, c_player_character,
+             c_player_input($));
 
-  ecs_singleton_set(world, player_input, {0});
+  ECS_SYSTEM(world, accept_input, EcsOnUpdate, c_player_input($));
+  ECS_SYSTEM(world, camera_follow, EcsPreUpdate, c_player_character,
+             c_camera($));
+  ECS_SYSTEM(world, begin_frame, EcsPreUpdate, c_player_character, c_camera($));
+  ECS_SYSTEM(world, render_player, EcsOnUpdate, c_player_character,
+             c_player_input($), c_camera($));
+
+  ECS_SYSTEM(world, end_frame, EcsPostUpdate);
+
+  // singletons
+  ecs_singleton_set(world, c_player_input, {0});
+  ecs_singleton_set(world, c_camera, {});
+
   ecs_entity_t player = ecs_new_id(world);
-  ecs_set(world, player, player_character, {});
+  ecs_set(world, player, c_player_character, {});
 
   InitPhysics();
   InitWindow(800, 450, "Space Game");

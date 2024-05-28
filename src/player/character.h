@@ -12,13 +12,13 @@
 typedef struct player_character {
   v2 position;
   v2 velocity;
-} player_character;
+} c_player_character;
 
 void move_player_character(ecs_iter_t *it) {
   f32 dt = it->delta_time;
 
-  player_character *character = ecs_field(it, player_character, 1);
-  const player_input *input = ecs_field(it, player_input, 2);
+  c_player_character *character = ecs_field(it, c_player_character, 1);
+  const c_player_input *input = ecs_field(it, c_player_input, 2);
 
   EXPECT(it->count <= 1,
          "More than two players controlled at a time, possibly a bug");

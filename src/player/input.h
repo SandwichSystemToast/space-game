@@ -6,12 +6,12 @@
 #include "raylib.h"
 #include "raymath.h"
 
-typedef struct player_input {
+typedef struct {
   v2 direction;
-} player_input;
+} c_player_input;
 
 void accept_input(ecs_iter_t *it) {
-  player_input *input = ecs_field(it, player_input, 1);
+  c_player_input *input = ecs_field(it, c_player_input, 1);
 
   input->direction = Vector2Zero();
   if (IsKeyDown(KEY_D))
