@@ -64,6 +64,12 @@ void render_player(ecs_iter_t *it) {
 int main(void) {
   ecs_world_t *world = ecs_init();
 
+  // Init a rest debugger and a statistics monitor
+#ifndef NDEBUG
+  ecs_singleton_set(world, EcsRest, {0});
+  ECS_IMPORT(world, FlecsMonitor); 
+#endif
+
   // singletons
   ECS_COMPONENT_DEFINE(world, c_player_input);
   ECS_COMPONENT_DEFINE(world, c_camera);
@@ -98,8 +104,6 @@ int main(void) {
 
   InitPhysics();
   InitWindow(800, 450, "Space Game");
-
-  SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
 
   while (!WindowShouldClose()) {
     ecs_progress(world, GetFrameTime());
