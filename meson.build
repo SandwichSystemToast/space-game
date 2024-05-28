@@ -35,6 +35,10 @@ dep += cc.find_library('m')
 
 subdir('src')
 
+flecs_proj = subproject('flecs')
+flecs_dep = flecs_proj.get_variable('flecs_dep')
+dep += flecs_dep
+
 executable(
   'space-game',
   src,

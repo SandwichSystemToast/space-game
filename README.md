@@ -1,4 +1,5 @@
-# space game
+# Space Game
 
-## special thanks
-* [raylib] (https://github.com/raysan5/raylib)
+## Special Thanks
+* [raylib](https://github.com/raysan5/raylib)
+* [flecs](https://github.com/SanderMertens/flecs)
