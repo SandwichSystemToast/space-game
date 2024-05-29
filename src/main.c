@@ -65,16 +65,25 @@ void render_player(ecs_iter_t *it) {
   DrawCircleV(transform->position, 15., WHITE);
 }
 
-void render_shapes(ecs_iter_t *it) {
-  c_transform *transform = ecs_field(it, c_transform, 1);
-  c_physics_shape *shape = ecs_field(it, c_physics_shape, 2);
+void render_shapes(ecs_iter_t *iterator) {
+  ecs_filter_t *f =
+      ecs_filter(iterator->world,
+                 {.terms = {{ecs_id(c_transform)}, {ecs_id(c_physics_shape)}}});
+  ecs_iter_t it = ecs_filter_iter(iterator->world, f);
 
-  for (z i = 0; i < shape->vertex_count; i++) {
-    z i1 = i;
-    z i2 = (i + 1) % shape->vertex_count;
+  while (ecs_filter_next(&it)) {
+    for (int i = 0; i < it.count; i++) {
+      c_transform *transform = ecs_field(&it, c_transform, 1);
+      c_physics_shape *shape = ecs_field(&it, c_physics_shape, 2);
 
-    DrawLineV(Vector2Add(transform->position, shape->vertices[i1]),
-              Vector2Add(transform->position, shape->vertices[i2]), RED);
+      for (z j = 0; j < shape->vertex_count; j++) {
+        z j1 = j;
+        z j2 = (j + 1) % shape->vertex_count;
+
+        DrawLineV(Vector2Add(transform->position, shape->vertices[j1]),
+                  Vector2Add(transform->position, shape->vertices[j2]), RED);
+      }
+    }
   }
 }
 
@@ -110,7 +119,7 @@ int main(void) {
 
   ECS_SYSTEM(world, render_player, EcsOnUpdate, c_player_character,
              c_player_input($), c_camera($));
-  ECS_SYSTEM(world, render_shapes, EcsOnUpdate, c_transform, c_physics_shape);
+  ECS_SYSTEM(world, render_shapes, EcsOnUpdate);
 
   ECS_SYSTEM(world, end_frame, EcsPostUpdate);
 
