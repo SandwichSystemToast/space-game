@@ -93,9 +93,8 @@ void solve_collisions(ecs_iter_t *iterator) {
                             &j_transform[j], direction);
 
           bool collided = false;
-          if (Vector2DotProduct(a, direction) <= 0.) {
-            goto done;
-          }
+          if (Vector2DotProduct(a, direction) <= 0.)
+            break;
 
           direction = Vector2Negate(direction);
           v2 ao, b, c, ab, ac;
@@ -105,9 +104,8 @@ void solve_collisions(ecs_iter_t *iterator) {
                 support_point(&i_shape[i], &i_transform[i], &j_shape[j],
                               &j_transform[j], direction);
 
-            if (Vector2DotProduct(a, direction) <= 0.) {
-              goto done;
-            }
+            if (Vector2DotProduct(a, direction) <= 0.)
+              break;
 
             ao = Vector2Negate(a);
 
@@ -131,7 +129,7 @@ void solve_collisions(ecs_iter_t *iterator) {
             } else {
               if (Vector2DotProduct(triple_product(ac, ab, ab), ao) < 0.) {
                 collided = true;
-                goto done;
+                break;
               }
 
               simplex[0] = simplex[1];
@@ -142,8 +140,8 @@ void solve_collisions(ecs_iter_t *iterator) {
             --simplex_index;
           }
 
-        done:
           if (collided) {
+            // report a collision
             DrawCircleV(Vector2Zero(), 10., GREEN);
           }
         }
