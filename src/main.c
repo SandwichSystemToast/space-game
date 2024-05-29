@@ -9,10 +9,17 @@
 #undef PHYSAC_IMPLEMENTATION
 
 #include "core/transform.h"
+#include "physics/shape.h"
 #include "player/character.h"
 #include "player/input.h"
 #include "rendering/camera.h"
 #include "rendering/rendering.h"
+
+typedef struct {
+  f32 radius;
+} c_asteroid;
+
+ECS_COMPONENT_DECLARE(c_asteroid);
 
 void render_player(ecs_iter_t *it) {
   c_player_character *character = ecs_field(it, c_player_character, 1);
@@ -61,13 +68,26 @@ void render_player(ecs_iter_t *it) {
   DrawCircleV(transform->position, 15., WHITE);
 }
 
+void render_shapes(ecs_iter_t *it) {
+  c_transform *transform = ecs_field(it, c_transform, 1);
+  c_physics_shape *shape = ecs_field(it, c_physics_shape, 2);
+
+  for (z i = 0; i < shape->vertex_count; i++) {
+    z i1 = i;
+    z i2 = (i + 1) % shape->vertex_count;
+
+    DrawLineV(Vector2Add(transform->position, shape->vertices[i1]),
+              Vector2Add(transform->position, shape->vertices[i2]), RED);
+  }
+}
+
 int main(void) {
   ecs_world_t *world = ecs_init();
 
   // Init a rest debugger and a statistics monitor
 #ifndef NDEBUG
   ecs_singleton_set(world, EcsRest, {0});
-  ECS_IMPORT(world, FlecsMonitor); 
+  ECS_IMPORT(world, FlecsMonitor);
 #endif
 
   // singletons
@@ -77,6 +97,8 @@ int main(void) {
   // components
   ECS_COMPONENT_DEFINE(world, c_transform);
   ECS_COMPONENT_DEFINE(world, c_player_character);
+  ECS_COMPONENT_DEFINE(world, c_asteroid);
+  ECS_COMPONENT_DEFINE(world, c_physics_shape);
 
   // systems
   ECS_SYSTEM(world, move_player_character, EcsOnUpdate, c_player_character,
@@ -85,8 +107,10 @@ int main(void) {
   ECS_SYSTEM(world, accept_input, EcsOnUpdate, c_player_input($));
   ECS_SYSTEM(world, camera_follow, EcsPreUpdate, c_camera($));
   ECS_SYSTEM(world, begin_frame, EcsPreUpdate, c_camera($));
+
   ECS_SYSTEM(world, render_player, EcsOnUpdate, c_player_character,
-              c_player_input($), c_camera($));
+             c_player_input($), c_camera($));
+  ECS_SYSTEM(world, render_shapes, EcsOnUpdate, c_transform, c_physics_shape);
 
   ECS_SYSTEM(world, end_frame, EcsPostUpdate);
 
@@ -98,6 +122,27 @@ int main(void) {
   ecs_entity_t player = ecs_new_id(world);
   ecs_set(world, player, c_player_character, {});
   ecs_set(world, player, c_transform, {});
+
+  ecs_entity_t asteroid = ecs_new_id(world);
+  ecs_set(world, asteroid, c_asteroid, {});
+  ecs_set(world, asteroid, c_physics_shape, {});
+  ecs_set(world, asteroid, c_transform, {});
+
+  c_physics_shape *shape = ecs_get(world, asteroid, c_physics_shape);
+  z vertex_count = 30;
+  shape->vertices = malloc(sizeof(v2) * vertex_count);
+  shape->vertex_count = vertex_count;
+
+  for (z i = 0; i < vertex_count; i++) {
+    const f32 max_vertex_length = 40;
+    const f32 min_vertex_length = 30;
+
+    const f32 d = max_vertex_length - min_vertex_length;
+    v2 vertex = {.x = 0,
+                 .y = min_vertex_length + (f32)rand() / (f32)(RAND_MAX / d)};
+    shape->vertices[i] =
+        Vector2Rotate(vertex, 2. * PI * (f32)i / (f32)vertex_count);
+  }
 
   c_camera *cam = ecs_singleton_get(world, c_camera);
   cam->look_at = player;
