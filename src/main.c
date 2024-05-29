@@ -33,8 +33,6 @@ void render_player(ecs_iter_t *it) {
 
   EXPECT(it->count == 1, "Too many players to draw");
 
-  ClearBackground(BLACK);
-
   DrawLineV(
       transform->position,
       Vector2Add(transform->position, Vector2Scale(input->direction, 40.)),

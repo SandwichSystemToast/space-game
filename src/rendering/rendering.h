@@ -11,6 +11,7 @@ void begin_frame(ecs_iter_t *it) {
   Camera2D cam2d = cam->cam2d;
 
   BeginMode2D(cam2d);
+  ClearBackground(BLACK);
 }
 
 void end_frame(ecs_iter_t *it) { EndDrawing(); }
