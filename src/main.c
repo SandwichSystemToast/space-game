@@ -9,6 +9,7 @@
 #undef PHYSAC_IMPLEMENTATION
 
 #include "core/transform.h"
+#include "physics/collisions.h"
 #include "physics/shape.h"
 #include "player/character.h"
 #include "player/input.h"
@@ -61,8 +62,6 @@ void render_player(ecs_iter_t *it) {
                        transform->position),
             GRAY);
 
-  DrawCircleV(Vector2Zero(), 10, GREEN);
-
   DrawCircleV(transform->position, 15., WHITE);
 }
 
@@ -106,6 +105,9 @@ int main(void) {
   ECS_SYSTEM(world, camera_follow, EcsPreUpdate, c_camera($));
   ECS_SYSTEM(world, begin_frame, EcsPreUpdate, c_camera($));
 
+  ECS_SYSTEM(world, solve_collisions, EcsOnUpdate, c_transform,
+             c_physics_shape);
+
   ECS_SYSTEM(world, render_player, EcsOnUpdate, c_player_character,
              c_player_input($), c_camera($));
   ECS_SYSTEM(world, render_shapes, EcsOnUpdate, c_transform, c_physics_shape);
@@ -116,11 +118,20 @@ int main(void) {
   ecs_singleton_set(world, c_player_input, {0});
   ecs_singleton_set(world, c_camera, {});
 
-  // entities
+  // player
   ecs_entity_t player = ecs_new_id(world);
   ecs_set(world, player, c_player_character, {});
   ecs_set(world, player, c_transform, {});
+  ecs_set(world, player, c_physics_shape, {});
 
+  c_physics_shape *player_shape = ecs_get(world, player, c_physics_shape);
+  c_physics_shape_circle_init(player_shape, 15., 32);
+
+  c_transform *transform = ecs_get(world, player, c_transform);
+  transform->position.x = -75;
+  transform->position.y = -75;
+
+  // asteroid
   ecs_entity_t asteroid = ecs_new_id(world);
   ecs_set(world, asteroid, c_asteroid, {});
   ecs_set(world, asteroid, c_physics_shape, {});
@@ -141,6 +152,8 @@ int main(void) {
     shape->vertices[i] =
         Vector2Rotate(vertex, 2. * PI * (f32)i / (f32)vertex_count);
   }
+
+  // camera
 
   c_camera *cam = ecs_singleton_get(world, c_camera);
   cam->look_at = player;
