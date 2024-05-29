@@ -5,7 +5,6 @@
 #include <float.h>
 
 #include "../core/transform.h"
-#include "raylib.h"
 #include "raymath.h"
 #include "shape.h"
 #include "src/def.h"
@@ -78,8 +77,9 @@ v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
 
   direction = Vector2Negate(direction);
   v2 ao, b, c, ab, ac;
-  for (z iter = 0; iter < 1500; iter++) {
 
+  z iterations = 0;
+  for (; iterations < 1500; iterations++) {
     a = simplex[++simplex_index] =
         support_point(a_shape, a_transform, b_shape, b_transform, direction);
 
@@ -118,6 +118,10 @@ v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
     simplex[1] = simplex[2];
     --simplex_index;
   }
+
+  EXPECT(iterations < 1000,
+         "The algorithm took %zu iterations to converge, possibly a bug?",
+         iterations);
 
   if (collided) {
     // epa
