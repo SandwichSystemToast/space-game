@@ -9,6 +9,14 @@
 #include "shape.h"
 #include "src/def.h"
 
+#ifndef MAX_GJK_ITERATIONS
+#define MAX_GJK_ITERATIONS 1500
+#endif
+
+#ifndef CONCERNING_GJK_ITERATIONS
+#define CONCERNING_GJK_ITERATIONS (MAX_GJK_ITERATIONS / 3)
+#endif
+
 v2 furthest_point(c_physics_shape *shape, c_transform *transform,
                   v2 direction) {
   v2 max_vertex = Vector2Zero();
@@ -79,7 +87,7 @@ v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
   v2 ao, b, c, ab, ac;
 
   z iterations = 0;
-  for (; iterations < 1500; iterations++) {
+  for (iterations = 1; iterations <= MAX_GJK_ITERATIONS; iterations++) {
     a = simplex[++simplex_index] =
         support_point(a_shape, a_transform, b_shape, b_transform, direction);
 
@@ -119,7 +127,7 @@ v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
     --simplex_index;
   }
 
-  EXPECT(iterations < 1000,
+  EXPECT(iterations < CONCERNING_GJK_ITERATIONS,
          "The algorithm took %zu iterations to converge, possibly a bug?",
          iterations);
 
