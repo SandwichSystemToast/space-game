@@ -40,27 +40,6 @@ void render_player(ecs_iter_t *it) {
   DrawLineV(transform->position,
             Vector2Add(transform->position, character->velocity), RED);
 
-#define FOV_ANGLE 40. * DEG2RAD
-
-  // Vision Cone
-  DrawLineV(transform->position,
-            Vector2Add(Vector2Scale(Vector2Normalize(Vector2Rotate(
-                                        Vector2Subtract(cam->cam2d.target,
-                                                        transform->position),
-                                        FOV_ANGLE)),
-                                    10000.),
-                       transform->position),
-            GRAY);
-
-  DrawLineV(transform->position,
-            Vector2Add(Vector2Scale(Vector2Normalize(Vector2Rotate(
-                                        Vector2Subtract(cam->cam2d.target,
-                                                        transform->position),
-                                        -FOV_ANGLE)),
-                                    10000.),
-                       transform->position),
-            GRAY);
-
   DrawCircleV(Vector2Zero(), 10, GREEN);
 
   DrawCircleV(transform->position, 15., WHITE);
