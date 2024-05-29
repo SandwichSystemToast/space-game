@@ -61,6 +61,72 @@ v2 perpendicular(v2 v) {
   return ret;
 }
 
+v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
+           c_physics_shape *b_shape, c_transform *b_transform) {
+  // TODO: better guess?
+  v2 direction = Vector2One();
+  direction.y = 0;
+
+  v2 simplex[3];
+  z simplex_index = 0;
+  v2 a = simplex[0] =
+      support_point(a_shape, a_transform, b_shape, b_transform, direction);
+
+  bool collided = false;
+  if (Vector2DotProduct(a, direction) <= 0.)
+    Vector2Zero();
+
+  direction = Vector2Negate(direction);
+  v2 ao, b, c, ab, ac;
+  for (z iter = 0; iter < 1500; iter++) {
+
+    a = simplex[++simplex_index] =
+        support_point(a_shape, a_transform, b_shape, b_transform, direction);
+
+    if (Vector2DotProduct(a, direction) <= 0.)
+      break;
+
+    ao = Vector2Negate(a);
+
+    if (simplex_index < 2) {
+      // line
+      b = simplex[0];
+      ab = Vector2Subtract(b, a);
+      direction = triple_product(ab, ao, ab);
+      if (Vector2LengthSqr(direction) == 0)
+        direction = perpendicular(ab);
+      continue;
+    }
+
+    b = simplex[1];
+    c = simplex[0];
+    ab = Vector2Subtract(b, a);
+    ac = Vector2Subtract(c, a);
+
+    if (Vector2DotProduct(triple_product(ab, ac, ac), ao) >= 0) {
+      direction = triple_product(ab, ac, ac);
+    } else {
+      if (Vector2DotProduct(triple_product(ac, ab, ab), ao) < 0.) {
+        collided = true;
+        break;
+      }
+
+      simplex[0] = simplex[1];
+      direction = triple_product(ac, ab, ab);
+    }
+
+    simplex[1] = simplex[2];
+    --simplex_index;
+  }
+
+  if (collided) {
+    // epa
+    return Vector2One();
+  }
+
+  return Vector2Zero();
+}
+
 // https://dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/
 void solve_collisions(ecs_iter_t *iterator) {
   ecs_filter_t *f =
@@ -82,68 +148,8 @@ void solve_collisions(ecs_iter_t *iterator) {
           if (i_it.entities == j_it.entities && i == j)
             continue;
 
-          // TODO: better guess?
-          v2 direction = Vector2One();
-          direction.y = 0;
-
-          v2 simplex[3];
-          z simplex_index = 0;
-          v2 a = simplex[0] =
-              support_point(&i_shape[i], &i_transform[i], &j_shape[j],
-                            &j_transform[j], direction);
-
-          bool collided = false;
-          if (Vector2DotProduct(a, direction) <= 0.)
-            break;
-
-          direction = Vector2Negate(direction);
-          v2 ao, b, c, ab, ac;
-          for (z iter = 0; iter < 1500; iter++) {
-
-            a = simplex[++simplex_index] =
-                support_point(&i_shape[i], &i_transform[i], &j_shape[j],
-                              &j_transform[j], direction);
-
-            if (Vector2DotProduct(a, direction) <= 0.)
-              break;
-
-            ao = Vector2Negate(a);
-
-            if (simplex_index < 2) {
-              // line
-              b = simplex[0];
-              ab = Vector2Subtract(b, a);
-              direction = triple_product(ab, ao, ab);
-              if (Vector2LengthSqr(direction) == 0)
-                direction = perpendicular(ab);
-              continue;
-            }
-
-            b = simplex[1];
-            c = simplex[0];
-            ab = Vector2Subtract(b, a);
-            ac = Vector2Subtract(c, a);
-
-            if (Vector2DotProduct(triple_product(ab, ac, ac), ao) >= 0) {
-              direction = triple_product(ab, ac, ac);
-            } else {
-              if (Vector2DotProduct(triple_product(ac, ab, ab), ao) < 0.) {
-                collided = true;
-                break;
-              }
-
-              simplex[0] = simplex[1];
-              direction = triple_product(ac, ab, ab);
-            }
-
-            simplex[1] = simplex[2];
-            --simplex_index;
-          }
-
-          if (collided) {
-            // report a collision
-            DrawCircleV(Vector2Zero(), 10., GREEN);
-          }
+          v2 direction = gjk_epa(&i_shape[i], &i_transform[i], &j_shape[j],
+                                 &j_transform[j]);
         }
       }
     }
