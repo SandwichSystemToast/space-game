@@ -72,9 +72,11 @@ v2 perpendicular(v2 v) {
 
 // Expanding Polytope Algorithm looks for an edge with minimal penetration
 // given the simplex, and returns the normal and the penetration depth
-v2 epa(c_physics_shape *a_shape, c_transform *a_transform,
-       c_physics_shape *b_shape, c_transform *b_transform, v2 simplex[3],
-       z simplex_index) {
+v2 expanding_polytope_algorithm(c_physics_shape *a_shape,
+                                c_transform *a_transform,
+                                c_physics_shape *b_shape,
+                                c_transform *b_transform, v2 simplex[3],
+                                z simplex_index) {
   z size = (a_shape->vertex_count + b_shape->vertex_count) * sizeof(v2);
   v2 *polytope = malloc(size);
   z polytope_size = simplex_index + 1;
@@ -125,11 +127,13 @@ v2 epa(c_physics_shape *a_shape, c_transform *a_transform,
   return Vector2Scale(normal, (depth + EPA_ERROR_MARGIN));
 }
 
-v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
-           c_physics_shape *b_shape, c_transform *b_transform) {
-  // TODO: better guess?
+// The Gilbert-Johnson-Keerthi tests if two convex shapes intersect by using a
+// Minkowsky difference and some quick optimizations around it
+v2 extended_gilbert_johnson_keerthi(c_physics_shape *a_shape,
+                                    c_transform *a_transform,
+                                    c_physics_shape *b_shape,
+                                    c_transform *b_transform) {
   v2 direction = Vector2One();
-  direction.y = 0;
 
   v2 simplex[3];
   z simplex_index = 0;
@@ -189,8 +193,8 @@ v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
          iterations);
 
   if (collided) {
-    return epa(a_shape, a_transform, b_shape, b_transform, simplex,
-               simplex_index);
+    return expanding_polytope_algorithm(a_shape, a_transform, b_shape,
+                                        b_transform, simplex, simplex_index);
   }
 
   return Vector2Zero();
@@ -217,8 +221,8 @@ void solve_collisions(ecs_iter_t *iterator) {
           if (i_it.entities == j_it.entities && i == j)
             continue;
 
-          v2 direction = gjk_epa(&i_shape[i], &i_transform[i], &j_shape[j],
-                                 &j_transform[j]);
+          v2 direction = extended_gilbert_johnson_keerthi(
+              &i_shape[i], &i_transform[i], &j_shape[j], &j_transform[j]);
 
           DrawLineV(
               Vector2Add(i_transform[i].position, Vector2Negate(direction)),
