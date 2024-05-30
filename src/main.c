@@ -147,20 +147,7 @@ int main(void) {
   ecs_set(world, asteroid, c_transform, {});
 
   c_physics_shape *shape = ecs_get(world, asteroid, c_physics_shape);
-  z vertex_count = 30;
-  shape->vertices = malloc(sizeof(v2) * vertex_count);
-  shape->vertex_count = vertex_count;
-
-  for (z i = 0; i < vertex_count; i++) {
-    const f32 max_vertex_length = 40;
-    const f32 min_vertex_length = 30;
-
-    const f32 d = max_vertex_length - min_vertex_length;
-    v2 vertex = {.x = 0,
-                 .y = min_vertex_length + (f32)rand() / (f32)(RAND_MAX / d)};
-    shape->vertices[i] =
-        Vector2Rotate(vertex, 2. * PI * (f32)i / (f32)vertex_count);
-  }
+  c_physics_shape_circle_init(shape, 40., 16);
 
   // camera
 

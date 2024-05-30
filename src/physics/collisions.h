@@ -3,14 +3,20 @@
 #include <flecs.h>
 
 #include <float.h>
+#include <math.h>
 
 #include "../core/transform.h"
+#include "raylib.h"
 #include "raymath.h"
 #include "shape.h"
 #include "src/def.h"
 
 #ifndef MAX_GJK_ITERATIONS
 #define MAX_GJK_ITERATIONS 1500
+#endif
+
+#ifndef EPA_ERROR_MARGIN
+#define EPA_ERROR_MARGIN 0.01
 #endif
 
 #ifndef CONCERNING_GJK_ITERATIONS
@@ -39,9 +45,6 @@ v2 furthest_point(c_physics_shape *shape, c_transform *transform,
 v2 support_point(c_physics_shape *lhs_shape, c_transform *lhs_transform,
                  c_physics_shape *rhs_shape, c_transform *rhs_transform,
                  v2 direction) {
-  EXPECT(Vector2LengthSqr(direction) != 0,
-         "Length of the direction vector can not be zero");
-
   return Vector2Subtract(
       furthest_point(lhs_shape, lhs_transform, direction),
       furthest_point(rhs_shape, rhs_transform, Vector2Negate(direction)));
@@ -66,6 +69,61 @@ v2 perpendicular(v2 v) {
   ret.x = v.y;
   ret.y = -v.x;
   return ret;
+}
+
+// Expanding Polytope Algorithm looks for an edge with minimal penetration
+// given the simplex, and returns the normal and the penetration depth
+v2 epa(c_physics_shape *a_shape, c_transform *a_transform,
+       c_physics_shape *b_shape, c_transform *b_transform, v2 simplex[3],
+       z simplex_index) {
+  z size = (a_shape->vertex_count + b_shape->vertex_count) * sizeof(v2);
+  v2 *polytope = malloc(size);
+  z polytope_size = simplex_index + 1;
+  memset(polytope, 0xCC, size);
+  for (z i = 0; i < polytope_size; i++)
+    polytope[i] = simplex[i];
+
+  f32 depth = INFINITY;
+  v2 normal = Vector2Zero();
+  z closest_i2 = 0;
+
+  while (depth == INFINITY) {
+    for (z i = 0; i < polytope_size; i++) {
+      z i1 = i, i2 = (i + 1) % polytope_size;
+      v2 edge = Vector2Subtract(polytope[i1], polytope[i2]);
+      v2 candidate_normal = Vector2Normalize(perpendicular(edge));
+
+      f32 candidate_depth = Vector2DotProduct(candidate_normal, polytope[i1]);
+
+      if (candidate_depth < 0.) {
+        // Normal is facing away, flip it
+        candidate_depth *= -1.;
+        candidate_normal = Vector2Negate(candidate_normal);
+      }
+
+      if (candidate_depth - depth < EPSILON) {
+        depth = candidate_depth;
+        normal = candidate_normal;
+        closest_i2 = i2;
+      }
+    }
+
+    v2 next_point =
+        support_point(a_shape, a_transform, b_shape, b_transform, normal);
+
+    f32 signed_depth = Vector2DotProduct(normal, next_point);
+
+    if (fabsf(signed_depth - depth) > EPA_ERROR_MARGIN) {
+      depth = INFINITY;
+      polytope_size++;
+
+      for (z i = polytope_size; i > closest_i2; i--)
+        polytope[i] = polytope[i - 1];
+      polytope[closest_i2] = next_point;
+    }
+  }
+
+  return Vector2Scale(normal, (depth + EPA_ERROR_MARGIN));
 }
 
 v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
@@ -132,8 +190,8 @@ v2 gjk_epa(c_physics_shape *a_shape, c_transform *a_transform,
          iterations);
 
   if (collided) {
-    // epa
-    return Vector2One();
+    return epa(a_shape, a_transform, b_shape, b_transform, simplex,
+               simplex_index);
   }
 
   return Vector2Zero();
@@ -162,6 +220,10 @@ void solve_collisions(ecs_iter_t *iterator) {
 
           v2 direction = gjk_epa(&i_shape[i], &i_transform[i], &j_shape[j],
                                  &j_transform[j]);
+
+          DrawLineV(
+              Vector2Add(i_transform[i].position, Vector2Negate(direction)),
+              i_transform[i].position, GREEN);
         }
       }
     }
