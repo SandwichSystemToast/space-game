@@ -20,6 +20,14 @@ bool check_vertex_winding(v2 *vertices, z vertex_count) {
   return true;
 }
 
+v2 c_physics_shape_naive_center(c_physics_shape *shape) {
+  v2 center = Vector2Zero();
+  for (z i = 0; i < shape->vertex_count; i++)
+    center = Vector2Add(
+        center, Vector2Scale(shape->vertices[i], 1 / (f32)shape->vertex_count));
+  return center;
+}
+
 void c_physics_shape_circle_init(c_physics_shape *shape, f32 radius,
                                  z resolution) {
   shape->vertex_count = resolution;

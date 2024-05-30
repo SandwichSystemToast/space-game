@@ -133,7 +133,9 @@ v2 extended_gilbert_johnson_keerthi(c_physics_shape *a_shape,
                                     c_transform *a_transform,
                                     c_physics_shape *b_shape,
                                     c_transform *b_transform) {
-  v2 direction = Vector2One();
+  // Choosing the geometric center is *theoretically* faster
+  v2 direction = Vector2Subtract(c_physics_shape_naive_center(a_shape),
+                                 c_physics_shape_naive_center(b_shape));
 
   v2 simplex[3];
   z simplex_index = 0;
