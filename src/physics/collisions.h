@@ -23,30 +23,15 @@
 #define CONCERNING_GJK_ITERATIONS (MAX_GJK_ITERATIONS / 3)
 #endif
 
-v2 furthest_point(c_physics_shape *shape, c_transform *transform,
-                  v2 direction) {
-  v2 max_vertex = Vector2Zero();
-  f32 max_dot = -FLT_MAX;
-
-  for (z i = 0; i < shape->vertex_count; i++) {
-    v2 vertex = shape->vertices[i];
-    float dot = Vector2DotProduct(vertex, direction);
-
-    if (dot > max_dot) {
-      max_dot = dot;
-      max_vertex = vertex;
-    }
-  }
-
-  return c_transform_vector(transform, max_vertex);
-}
-
-v2 support_point(c_physics_shape *lhs_shape, c_transform *lhs_transform,
-                 c_physics_shape *rhs_shape, c_transform *rhs_transform,
+v2 support_point(c_physics_shape *a_shape, c_transform *a_transform,
+                 c_physics_shape *b_shape, c_transform *b_transform,
                  v2 direction) {
+  v2 furthest_a = c_physics_shape_furtest_point(a_shape, direction);
+  v2 furthest_b = c_physics_shape_furtest_point(b_shape, Vector2Negate(direction));
+
   return Vector2Subtract(
-      furthest_point(lhs_shape, lhs_transform, direction),
-      furthest_point(rhs_shape, rhs_transform, Vector2Negate(direction)));
+      c_transform_vector(a_transform, furthest_a),
+      c_transform_vector(b_transform, furthest_b));
 }
 
 bool v2_same_direction(v2 a, v2 b) { return Vector2DotProduct(a, b) > 0.; }

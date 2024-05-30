@@ -2,6 +2,8 @@
 
 #include "../def.h"
 
+#include <float.h>
+
 #include <flecs.h>
 
 #include <raymath.h>
@@ -26,6 +28,23 @@ v2 c_physics_shape_naive_center(c_physics_shape *shape) {
     center = Vector2Add(
         center, Vector2Scale(shape->vertices[i], 1 / (f32)shape->vertex_count));
   return center;
+}
+
+v2 c_physics_shape_furtest_point(c_physics_shape *shape, v2 direction) {
+  v2 max_vertex = Vector2Zero();
+  f32 max_dot = -INFINITY;
+
+  for (z i = 0; i < shape->vertex_count; i++) {
+    v2 vertex = shape->vertices[i];
+    float dot = Vector2DotProduct(vertex, direction);
+
+    if (dot > max_dot) {
+      max_dot = dot;
+      max_vertex = vertex;
+    }
+  }
+
+  return max_vertex;
 }
 
 void c_physics_shape_circle_init(c_physics_shape *shape, f32 radius,
