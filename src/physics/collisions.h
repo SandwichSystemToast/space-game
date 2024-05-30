@@ -29,8 +29,7 @@ v2 furthest_point(c_physics_shape *shape, c_transform *transform,
   f32 max_dot = -FLT_MAX;
 
   for (z i = 0; i < shape->vertex_count; i++) {
-    // TODO: investigate efficiency
-    v2 vertex = c_transform_vector(transform, shape->vertices[i]);
+    v2 vertex = shape->vertices[i];
     float dot = Vector2DotProduct(vertex, direction);
 
     if (dot > max_dot) {
@@ -39,7 +38,7 @@ v2 furthest_point(c_physics_shape *shape, c_transform *transform,
     }
   }
 
-  return max_vertex;
+  return c_transform_vector(transform, max_vertex);
 }
 
 v2 support_point(c_physics_shape *lhs_shape, c_transform *lhs_transform,
