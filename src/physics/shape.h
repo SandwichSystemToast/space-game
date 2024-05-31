@@ -54,8 +54,8 @@ void c_physics_shape_circle_init(c_physics_shape *shape, f32 radius,
 
   for (z i = 0; i < resolution; i++) {
     v2 vertex = {.x = radius, .y = 0};
-    shape->vertices[i] =
-        Vector2Rotate(vertex, 2. * PI * (f32)i / (f32)shape->vertex_count);
+    f32 angle = 2. * PI * (f32)i / (f32)shape->vertex_count;
+    shape->vertices[i] = Vector2Rotate(vertex, angle);
   }
 
   EXPECT(check_vertex_winding(shape->vertices, shape->vertex_count),

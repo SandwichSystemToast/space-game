@@ -27,11 +27,11 @@ v2 support_point(c_physics_shape *a_shape, c_transform *a_transform,
                  c_physics_shape *b_shape, c_transform *b_transform,
                  v2 direction) {
   v2 furthest_a = c_physics_shape_furtest_point(a_shape, direction);
-  v2 furthest_b = c_physics_shape_furtest_point(b_shape, Vector2Negate(direction));
+  v2 furthest_b =
+      c_physics_shape_furtest_point(b_shape, Vector2Negate(direction));
 
-  return Vector2Subtract(
-      c_transform_vector(a_transform, furthest_a),
-      c_transform_vector(b_transform, furthest_b));
+  return Vector2Subtract(c_transform_vector(a_transform, furthest_a),
+                         c_transform_vector(b_transform, furthest_b));
 }
 
 bool v2_same_direction(v2 a, v2 b) { return Vector2DotProduct(a, b) > 0.; }
@@ -194,6 +194,7 @@ void solve_collisions(ecs_iter_t *iterator) {
                  {.terms = {{ecs_id(c_transform)}, {ecs_id(c_physics_shape)}}});
 
   ecs_iter_t i_it = ecs_filter_iter(iterator->world, f);
+
   while (ecs_filter_next(&i_it)) {
     c_transform *i_transform = ecs_field(&i_it, c_transform, 1);
     c_physics_shape *i_shape = ecs_field(&i_it, c_physics_shape, 2);
@@ -205,7 +206,7 @@ void solve_collisions(ecs_iter_t *iterator) {
 
       for (z i = 0; i < i_it.count; i++) {
         for (z j = 0; j < j_it.count; j++) {
-          if (i_it.entities == j_it.entities && i == j)
+          if (i_it.entities == j_it.entities && i <= j)
             continue;
 
           v2 direction = extended_gilbert_johnson_keerthi(

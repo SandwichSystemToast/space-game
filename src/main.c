@@ -65,24 +65,16 @@ void render_player(ecs_iter_t *it) {
   DrawCircleV(transform->position, 15., WHITE);
 }
 
-void render_shapes(ecs_iter_t *iterator) {
-  ecs_filter_t *f =
-      ecs_filter(iterator->world,
-                 {.terms = {{ecs_id(c_transform)}, {ecs_id(c_physics_shape)}}});
-  ecs_iter_t it = ecs_filter_iter(iterator->world, f);
+void render_shapes(ecs_iter_t *it) {
+  c_transform *transform = ecs_field(it, c_transform, 1);
+  c_physics_shape *shape = ecs_field(it, c_physics_shape, 2);
 
-  while (ecs_filter_next(&it)) {
-    for (int i = 0; i < it.count; i++) {
-      c_transform *transform = ecs_field(&it, c_transform, 1);
-      c_physics_shape *shape = ecs_field(&it, c_physics_shape, 2);
+  for (z i = 0; i < it->count; i++) {
+    for (z j = 0; j < shape[i].vertex_count; j++) {
+      z j1 = j, j2 = (j + 1) % shape[i].vertex_count;
 
-      for (z j = 0; j < shape->vertex_count; j++) {
-        z j1 = j;
-        z j2 = (j + 1) % shape->vertex_count;
-
-        DrawLineV(Vector2Add(transform->position, shape->vertices[j1]),
-                  Vector2Add(transform->position, shape->vertices[j2]), RED);
-      }
+      DrawLineV(c_transform_vector(&transform[i], shape[i].vertices[j1]),
+                c_transform_vector(&transform[i], shape[i].vertices[j2]), RED);
     }
   }
 }
@@ -114,12 +106,11 @@ int main(void) {
   ECS_SYSTEM(world, camera_follow, EcsPreUpdate, c_camera($));
   ECS_SYSTEM(world, begin_frame, EcsPreUpdate, c_camera($));
 
-  ECS_SYSTEM(world, solve_collisions, EcsOnUpdate, c_transform,
-             c_physics_shape);
+  ECS_SYSTEM(world, solve_collisions, EcsOnUpdate);
 
   ECS_SYSTEM(world, render_player, EcsOnUpdate, c_player_character,
              c_player_input($), c_camera($));
-  ECS_SYSTEM(world, render_shapes, EcsOnUpdate);
+  ECS_SYSTEM(world, render_shapes, EcsOnUpdate, c_transform, c_physics_shape);
 
   ECS_SYSTEM(world, end_frame, EcsPostUpdate);
 
@@ -140,17 +131,29 @@ int main(void) {
   transform->position.x = -75;
   transform->position.y = -75;
 
-  // asteroid
-  ecs_entity_t asteroid = ecs_new_id(world);
-  ecs_set(world, asteroid, c_asteroid, {});
-  ecs_set(world, asteroid, c_physics_shape, {});
-  ecs_set(world, asteroid, c_transform, {});
+  // asteroid 1
+  ecs_entity_t asteroid1 = ecs_new_id(world);
+  ecs_set(world, asteroid1, c_asteroid, {});
+  ecs_set(world, asteroid1, c_physics_shape, {});
+  ecs_set(world, asteroid1, c_transform, {});
 
-  c_physics_shape *shape = ecs_get(world, asteroid, c_physics_shape);
-  c_physics_shape_circle_init(shape, 40., 16);
+  c_physics_shape *asteroid1_shape = ecs_get(world, asteroid1, c_physics_shape);
+  c_physics_shape_circle_init(asteroid1_shape, 40., 16);
+
+  // asteroid 2
+  ecs_entity_t asteroid2 = ecs_new_id(world);
+  ecs_set(world, asteroid2, c_asteroid, {});
+  ecs_set(world, asteroid2, c_physics_shape, {});
+  ecs_set(world, asteroid2, c_transform, {});
+
+  c_physics_shape *asteroid2_shape = ecs_get(world, asteroid2, c_physics_shape);
+  c_physics_shape_circle_init(asteroid2_shape, 89., 64);
+
+  c_transform *asteroid2_transform = ecs_get(world, asteroid2, c_transform);
+  asteroid2_transform->position.x = 75;
+  asteroid2_transform->position.y = 75;
 
   // camera
-
   c_camera *cam = ecs_singleton_get(world, c_camera);
   cam->look_at = player;
 
