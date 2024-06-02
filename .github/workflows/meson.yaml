@@ -1,6 +1,8 @@
 name: CI Meson
 
-on: []
+on:
+  push
+  pull_request
 
 jobs:
   build:
