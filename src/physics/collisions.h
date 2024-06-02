@@ -65,15 +65,14 @@ v2 expanding_polytope_algorithm(c_physics_shape *a_shape,
   z size = (a_shape->vertex_count + b_shape->vertex_count) * sizeof(v2);
   v2 *polytope = malloc(size);
   z polytope_size = simplex_index + 1;
-  memset(polytope, 0xCC, size);
-  for (z i = 0; i < polytope_size; i++)
-    polytope[i] = simplex[i];
+  memset(polytope, 0xCC, size); // Improve debugging
+  memcpy(polytope, simplex, polytope_size * sizeof(v2));
 
   f32 depth = INFINITY;
   v2 normal = Vector2Zero();
   z closest_i2 = 0;
 
-  while (depth == INFINITY) {
+  while (isinf(depth)) {
     for (z i = 0; i < polytope_size; i++) {
       z i1 = i, i2 = (i + 1) % polytope_size;
       v2 edge = Vector2Subtract(polytope[i1], polytope[i2]);
@@ -109,6 +108,8 @@ v2 expanding_polytope_algorithm(c_physics_shape *a_shape,
     }
   }
 
+  free(polytope);
+
   return Vector2Scale(normal, (depth + EPA_ERROR_MARGIN));
 }
 
@@ -129,7 +130,7 @@ v2 extended_gilbert_johnson_keerthi(c_physics_shape *a_shape,
 
   bool collided = false;
   if (Vector2DotProduct(a, direction) <= 0.)
-    Vector2Zero();
+    return Vector2Zero();
 
   direction = Vector2Negate(direction);
   v2 ao, b, c, ab, ac;
@@ -219,4 +220,6 @@ void solve_collisions(ecs_iter_t *iterator) {
       }
     }
   }
+
+  ecs_filter_fini(f);
 }
