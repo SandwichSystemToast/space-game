@@ -13,8 +13,8 @@
 // TODO: is it ok if this is an int?
 // used to ensure that at least UNITS_PER_MINIMAL_DIMENSION^2
 // in-game units are visible at any time
-#define UNITS_PER_MINIMAL_DIMENSION 18
-#define PIXELS_PER_UNIT 32
+#define UNITS_PER_MINIMAL_DIMENSION 1
+#define PIXELS_PER_UNIT 64
 #define UNITS_PER_PIXEL (1 / (f32)PIXELS_PER_UNIT)
 
 typedef struct {
@@ -58,8 +58,13 @@ void camera_follow(ecs_iter_t *it) {
 
   // TODO: consider HiDPI
   f32 actual_aspect_ratio = (f32)GetRenderWidth() / (f32)GetRenderHeight();
-  f32 pixels_to_units_zoom = fminf(GetRenderWidth(), GetRenderHeight()) *
-                             UNITS_PER_PIXEL / UNITS_PER_MINIMAL_DIMENSION;
+  f32 pixels_to_units_zoom =
+      (fminf(GetRenderWidth(), GetRenderHeight()) / PIXELS_PER_UNIT) /
+      UNITS_PER_MINIMAL_DIMENSION;
+
+  f32 units = fminf(GetRenderWidth(), GetRenderHeight()) / PIXELS_PER_UNIT;
+  printf("%f\n", units);
+
   f32 desired_zoom =
       pixels_to_units_zoom * actual_aspect_ratio / cam->target_aspect_ratio;
 

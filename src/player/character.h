@@ -6,9 +6,9 @@
 
 #include "input.h"
 
-#define CHARACTER_MAX_SPEED 240.
+#define CHARACTER_MAX_SPEED 24.
 #define CHARACTER_MAX_ACCELERATION (10. * CHARACTER_MAX_SPEED)
-#define CHARACTER_DRAG 10.
+#define CHARACTER_DRAG 7.
 
 typedef struct player_character {
   v2 velocity;

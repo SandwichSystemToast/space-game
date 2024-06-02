@@ -43,8 +43,7 @@ void render_player(ecs_iter_t *it) {
             Vector2Add(transform->position, character->velocity), RED);
 
   DrawLineV(transform->position, c_camera_world_mouse_position(cam), BLUE);
-
-  DrawCircleV(transform->position, 15., WHITE);
+  DrawCircleV(transform->position, 1.5, WHITE);
 }
 
 void render_shapes(ecs_iter_t *it) {
@@ -106,7 +105,7 @@ int main(void) {
   ecs_set(world, player, c_physics_shape, {});
 
   c_physics_shape *player_shape = ecs_get(world, player, c_physics_shape);
-  c_physics_shape_circle_init(player_shape, 15., 32);
+  c_physics_shape_circle_init(player_shape, 1.5, 32);
 
   c_transform *transform = ecs_get(world, player, c_transform);
   transform->position.x = 0;
@@ -119,7 +118,7 @@ int main(void) {
   ecs_set(world, asteroid1, c_transform, {});
 
   c_physics_shape *asteroid1_shape = ecs_get(world, asteroid1, c_physics_shape);
-  c_physics_shape_circle_init(asteroid1_shape, 40., 16);
+  c_physics_shape_circle_init(asteroid1_shape, 4., 16);
 
   // asteroid 2
   ecs_entity_t asteroid2 = ecs_new_id(world);
@@ -128,11 +127,11 @@ int main(void) {
   ecs_set(world, asteroid2, c_transform, {});
 
   c_physics_shape *asteroid2_shape = ecs_get(world, asteroid2, c_physics_shape);
-  c_physics_shape_circle_init(asteroid2_shape, 89., 64);
+  c_physics_shape_circle_init(asteroid2_shape, 8.9, 64);
 
   c_transform *asteroid2_transform = ecs_get(world, asteroid2, c_transform);
-  asteroid2_transform->position.x = 75;
-  asteroid2_transform->position.y = 75;
+  asteroid2_transform->position.x = 7.5;
+  asteroid2_transform->position.y = 7.5;
 
   // camera
   c_camera *cam = ecs_singleton_get(world, c_camera);
@@ -141,6 +140,8 @@ int main(void) {
   InitPhysics();
   InitWindow(800, 450, "Space Game");
   SetWindowState(FLAG_WINDOW_RESIZABLE);
+
+  SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
     ecs_progress(world, GetFrameTime());
