@@ -36,7 +36,7 @@ v2 c_physics_shape_furtest_point(c_physics_shape *shape, v2 direction) {
 
   for (z i = 0; i < shape->vertex_count; i++) {
     v2 vertex = shape->vertices[i];
-    float dot = Vector2DotProduct(vertex, direction);
+    f32 dot = Vector2DotProduct(vertex, direction);
 
     if (dot > max_dot) {
       max_dot = dot;
