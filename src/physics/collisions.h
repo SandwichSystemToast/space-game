@@ -206,7 +206,7 @@ void solve_collisions(ecs_iter_t *iterator) {
 
       for (z i = 0; i < i_it.count; i++) {
         for (z j = 0; j < j_it.count; j++) {
-          if (i_it.entities == j_it.entities && i <= j)
+          if (i_it.entities == j_it.entities && i == j)
             continue;
 
           v2 direction = extended_gilbert_johnson_keerthi(
