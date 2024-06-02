@@ -21,7 +21,6 @@ typedef struct {
   Camera2D cam2d;
 
   f32 mouse_look_weight;
-  f32 ease_lerp_t;
   f32 target_aspect_ratio;
 
   ecs_entity_t look_at;
@@ -40,11 +39,15 @@ c_camera camera_new() {
 }
 
 v2 c_camera_relative_mouse_position(const c_camera *cam) {
-  return Vector2Subtract(GetMousePosition(), cam->cam2d.offset);
+  return Vector2Scale(Vector2Subtract(GetMousePosition(), cam->cam2d.offset),
+                      1. / cam->cam2d.zoom);
+}
+
+v2 c_camera_world_mouse_position(const c_camera *cam) {
+  return Vector2Add(c_camera_relative_mouse_position(cam), cam->cam2d.target);
 }
 
 void camera_follow(ecs_iter_t *it) {
-  f32 dt = it->delta_time;
   c_camera *cam = ecs_field(it, c_camera, 1);
 
   EXPECT(ecs_is_valid(it->world, cam->look_at),
@@ -67,18 +70,9 @@ void camera_follow(ecs_iter_t *it) {
   cam2d->offset.x = GetScreenWidth() / 2.;
   cam2d->offset.y = GetScreenHeight() / 2.;
   cam->mouse_look_weight = 0.2;
-  cam->ease_lerp_t = 0.999;
   cam->target_aspect_ratio = 16. / 9.;
 
-  v2 mouse_pos =
-      Vector2Scale(c_camera_relative_mouse_position(cam), 1. / desired_zoom);
-  v2 camera_new_target = Vector2Add(
-      Vector2Scale(mouse_pos, cam->mouse_look_weight), transform->position);
-
-  v2 eased_target =
-      Vector2Add(Vector2Scale(Vector2Subtract(cam2d->target, camera_new_target),
-                              powf(1. - cam->ease_lerp_t, dt)),
-                 camera_new_target);
-
-  cam2d->target = eased_target;
+  v2 mouse_pos = c_camera_relative_mouse_position(cam);
+  cam2d->target = Vector2Add(Vector2Scale(mouse_pos, cam->mouse_look_weight),
+                             transform->position);
 }

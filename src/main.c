@@ -42,6 +42,8 @@ void render_player(ecs_iter_t *it) {
   DrawLineV(transform->position,
             Vector2Add(transform->position, character->velocity), RED);
 
+  DrawLineV(transform->position, c_camera_world_mouse_position(cam), BLUE);
+
 #define FOV_ANGLE 40. * DEG2RAD
 
   // Vision Cone
@@ -128,8 +130,8 @@ int main(void) {
   c_physics_shape_circle_init(player_shape, 15., 32);
 
   c_transform *transform = ecs_get(world, player, c_transform);
-  transform->position.x = -75;
-  transform->position.y = -75;
+  transform->position.x = 0;
+  transform->position.y = 0;
 
   // asteroid 1
   ecs_entity_t asteroid1 = ecs_new_id(world);
