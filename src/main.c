@@ -159,6 +159,7 @@ int main(void) {
 
   InitPhysics();
   InitWindow(800, 450, "Space Game");
+  SetWindowState(FLAG_WINDOW_RESIZABLE);
 
   while (!WindowShouldClose()) {
     ecs_progress(world, GetFrameTime());

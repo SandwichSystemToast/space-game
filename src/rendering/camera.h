@@ -2,17 +2,27 @@
 
 #include "../core/transform.h"
 #include "../def.h"
-#include "flecs.h"
-#include "raylib.h"
 
-#include "flecs/flecs.h"
+#include "flecs.h"
+
+#include "raylib.h"
 #include "raymath.h"
+
+#include <math.h>
+
+// TODO: is it ok if this is an int?
+// used to ensure that at least UNITS_PER_MINIMAL_DIMENSION^2
+// in-game units are visible at any time
+#define UNITS_PER_MINIMAL_DIMENSION 18
+#define PIXELS_PER_UNIT 32
+#define UNITS_PER_PIXEL (1 / (f32)PIXELS_PER_UNIT)
 
 typedef struct {
   Camera2D cam2d;
 
-  float mouse_look_weight;
-  float ease_lerp_t;
+  f32 mouse_look_weight;
+  f32 ease_lerp_t;
+  f32 target_aspect_ratio;
 
   ecs_entity_t look_at;
 } c_camera;
@@ -43,16 +53,25 @@ void camera_follow(ecs_iter_t *it) {
          "The camera target does not have a transform component");
   const c_transform *transform = ecs_get(it->world, cam->look_at, c_transform);
 
+  // TODO: consider HiDPI
+  f32 actual_aspect_ratio = (f32)GetRenderWidth() / (f32)GetRenderHeight();
+  f32 pixels_to_units_zoom = fminf(GetRenderWidth(), GetRenderHeight()) *
+                             UNITS_PER_PIXEL / UNITS_PER_MINIMAL_DIMENSION;
+  f32 desired_zoom =
+      pixels_to_units_zoom * actual_aspect_ratio / cam->target_aspect_ratio;
+
   // TODO: deduce if the camera should look at the ship or something else
   Camera2D *cam2d = &cam->cam2d;
   cam2d->rotation = 0.;
-  cam2d->zoom = 1.2;
+  cam2d->zoom = desired_zoom;
   cam2d->offset.x = GetScreenWidth() / 2.;
   cam2d->offset.y = GetScreenHeight() / 2.;
   cam->mouse_look_weight = 0.2;
   cam->ease_lerp_t = 0.999;
+  cam->target_aspect_ratio = 16. / 9.;
 
-  v2 mouse_pos = c_camera_relative_mouse_position(cam);
+  v2 mouse_pos =
+      Vector2Scale(c_camera_relative_mouse_position(cam), 1. / desired_zoom);
   v2 camera_new_target = Vector2Add(
       Vector2Scale(mouse_pos, cam->mouse_look_weight), transform->position);
 
