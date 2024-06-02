@@ -88,6 +88,8 @@ int main(void) {
   ECS_SYSTEM(world, move_player_character, EcsOnUpdate, c_player_character,
              c_transform, c_player_input($));
 
+  ECS_SYSTEM(world, solve_collisions, EcsOnUpdate);
+
   ECS_SYSTEM(world, render_player, EcsPostUpdate, c_player_character,
              c_player_input($), c_camera($));
   ECS_SYSTEM(world, render_shapes, EcsPostUpdate, c_transform, c_physics_shape);
