@@ -34,6 +34,7 @@ v2 c_camera_relative_mouse_position(const c_camera *cam) {
 }
 
 void camera_follow(ecs_iter_t *it) {
+  f32 dt = it->delta_time;
   c_camera *cam = ecs_field(it, c_camera, 1);
 
   EXPECT(ecs_is_valid(it->world, cam->look_at),
@@ -49,15 +50,16 @@ void camera_follow(ecs_iter_t *it) {
   cam2d->offset.x = GetScreenWidth() / 2.;
   cam2d->offset.y = GetScreenHeight() / 2.;
   cam->mouse_look_weight = 0.2;
-  cam->ease_lerp_t = 0.9;
+  cam->ease_lerp_t = 0.999;
 
   v2 mouse_pos = c_camera_relative_mouse_position(cam);
   v2 camera_new_target = Vector2Add(
       Vector2Scale(mouse_pos, cam->mouse_look_weight), transform->position);
 
   v2 eased_target =
-      Vector2Add(Vector2Scale(camera_new_target, cam->ease_lerp_t),
-                 Vector2Scale(cam2d->target, 1. - cam->ease_lerp_t));
+      Vector2Add(Vector2Scale(Vector2Subtract(cam2d->target, camera_new_target),
+                              powf(1. - cam->ease_lerp_t, dt)),
+                 camera_new_target);
 
   cam2d->target = eased_target;
 }
