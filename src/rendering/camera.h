@@ -16,10 +16,13 @@
 #define UNITS_PER_MINIMAL_DIMENSION 1
 #define PIXELS_PER_UNIT 64
 #define UNITS_PER_PIXEL (1 / (f32)PIXELS_PER_UNIT)
+#define MIN_ZOOM 0.3f
+#define MAX_ZOOM 3.f
 
 typedef struct {
   Camera2D cam2d;
 
+  f32 zoom;
   f32 mouse_look_weight;
   f32 target_aspect_ratio;
 
@@ -34,7 +37,11 @@ c_camera camera_new() {
   ret.cam2d.rotation = 0.;
   ret.cam2d.zoom = 1.;
   ret.cam2d.target = Vector2Zero();
-  ret.mouse_look_weight = 0.1;
+
+  ret.zoom = 1.;
+  ret.target_aspect_ratio = 16. / 9.;
+  ret.mouse_look_weight = 0.2;
+
   return ret;
 }
 
@@ -62,17 +69,20 @@ void camera_follow(ecs_iter_t *it) {
       (fminf(GetRenderWidth(), GetRenderHeight()) / PIXELS_PER_UNIT) /
       UNITS_PER_MINIMAL_DIMENSION;
 
-  f32 desired_zoom =
-      pixels_to_units_zoom * actual_aspect_ratio / cam->target_aspect_ratio;
+  cam->zoom = Clamp(cam->zoom + GetMouseWheelMove(), MIN_ZOOM, MAX_ZOOM);
+
+  f32 desired_zoom = cam->zoom * pixels_to_units_zoom * actual_aspect_ratio /
+                     cam->target_aspect_ratio;
 
   // TODO: deduce if the camera should look at the ship or something else
+  cam->target_aspect_ratio = 16. / 9.;
+  cam->mouse_look_weight = 0.2;
+
   Camera2D *cam2d = &cam->cam2d;
   cam2d->rotation = 0.;
   cam2d->zoom = desired_zoom;
   cam2d->offset.x = GetScreenWidth() / 2.;
   cam2d->offset.y = GetScreenHeight() / 2.;
-  cam->mouse_look_weight = 0.2;
-  cam->target_aspect_ratio = 16. / 9.;
 
   v2 mouse_pos = c_camera_relative_mouse_position(cam);
   cam2d->target = Vector2Add(Vector2Scale(mouse_pos, cam->mouse_look_weight),
