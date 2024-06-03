@@ -62,9 +62,6 @@ void camera_follow(ecs_iter_t *it) {
       (fminf(GetRenderWidth(), GetRenderHeight()) / PIXELS_PER_UNIT) /
       UNITS_PER_MINIMAL_DIMENSION;
 
-  f32 units = fminf(GetRenderWidth(), GetRenderHeight()) / PIXELS_PER_UNIT;
-  printf("%f\n", units);
-
   f32 desired_zoom =
       pixels_to_units_zoom * actual_aspect_ratio / cam->target_aspect_ratio;
 
