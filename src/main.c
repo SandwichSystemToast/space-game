@@ -5,10 +5,6 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#define PHYSAC_IMPLEMENTATION
-#include "physac/src/physac.h"
-#undef PHYSAC_IMPLEMENTATION
-
 #include "core/transform.h"
 #include "physics/collisions.h"
 #include "physics/shape.h"
@@ -139,7 +135,6 @@ int main(void) {
   c_camera *cam = ecs_singleton_get(world, c_camera);
   cam->look_at = player;
 
-  InitPhysics();
   InitWindow(800, 450, "Space Game");
   SetWindowState(FLAG_WINDOW_RESIZABLE);
 
@@ -150,7 +145,6 @@ int main(void) {
   }
 
   CloseWindow();
-  ClosePhysics();
 
   ecs_fini(world);
 

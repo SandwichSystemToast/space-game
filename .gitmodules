@@ -1,9 +1,6 @@
 [submodule "external/raylib"]
 	path = external/raylib
 	url = https://github.com/raysan5/raylib
-[submodule "external/physac"]
-	path = external/physac
-	url = https://github.com/victorfisac/Physac
 [submodule "external/flecs"]
 	path = external/flecs
 	url = https://github.com/SanderMertens/flecs.git
