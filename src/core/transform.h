@@ -15,4 +15,9 @@ v2 c_transform_vector(c_transform *transform, v2 vector) {
                     transform->position);
 }
 
+void c_transform_get_rounded_pos(c_transform *transform, i64 *x, i64 *y) {
+  *x = (i64)roundf(transform->position.x);
+  *y = (i64)roundf(transform->position.y);
+}
+
 ECS_COMPONENT_DECLARE(c_transform);

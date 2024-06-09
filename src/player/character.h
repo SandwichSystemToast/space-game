@@ -6,7 +6,7 @@
 
 #include "input.h"
 
-#define CHARACTER_MAX_SPEED 24.
+#define CHARACTER_MAX_SPEED 100.
 #define CHARACTER_MAX_ACCELERATION (10. * CHARACTER_MAX_SPEED)
 #define CHARACTER_DRAG 7.
 

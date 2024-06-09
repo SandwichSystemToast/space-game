@@ -7,6 +7,7 @@
 
 #include "core/transform.h"
 #include "physics/collisions.h"
+#include "physics/quadtree.h"
 #include "physics/shape.h"
 #include "player/character.h"
 #include "player/input.h"
@@ -58,6 +59,8 @@ void render_shapes(ecs_iter_t *it) {
 
 int main(void) {
   ecs_world_t *world = ecs_init();
+  init_root(512);
+  printf("ROOT %d\n", root);
 
   // Init a rest debugger and a statistics monitor
 #ifndef NDEBUG
@@ -90,7 +93,7 @@ int main(void) {
              c_player_input($), c_camera($));
   ECS_SYSTEM(world, render_shapes, EcsPostUpdate, c_transform, c_physics_shape);
 
-  ECS_SYSTEM(world, end_frame, EcsOnStore);
+  // ECS_SYSTEM(world, end_frame, EcsOnStore);
 
   // singletons
   ecs_singleton_set(world, c_player_input, {0});
@@ -114,6 +117,9 @@ int main(void) {
   ecs_set(world, asteroid1, c_asteroid, {});
   ecs_set(world, asteroid1, c_physics_shape, {});
   ecs_set(world, asteroid1, c_transform, {});
+  c_transform *asteroid1_transform = ecs_get(world, asteroid1, c_transform);
+  asteroid1_transform->position.x = 1.5;
+  asteroid1_transform->position.y = 1.5;
 
   c_physics_shape *asteroid1_shape = ecs_get(world, asteroid1, c_physics_shape);
   c_physics_shape_circle_init(asteroid1_shape, 4., 16);
@@ -140,8 +146,26 @@ int main(void) {
 
   SetTargetFPS(60);
 
+  add_entity(root, asteroid1, world);
+  add_entity(root, asteroid2, world);
+  add_entity(root, player, world);
+
+  srand(0xb00b);
+  for (int i = 0; i < 500; i++) {
+    ecs_entity_t aaaa = ecs_new_id(world);
+    ecs_set(world, aaaa, c_asteroid, {});
+    ecs_set(world, aaaa, c_physics_shape, {});
+    ecs_set(world, aaaa, c_transform, {});
+    c_transform *aaaa_transform = ecs_get(world, aaaa, c_transform);
+    aaaa_transform->position.x = (float)rand() / RAND_MAX * 200.f;
+    aaaa_transform->position.y = (float)rand() / RAND_MAX * 200.f;
+    add_entity(root, aaaa, world);
+  }
+
   while (!WindowShouldClose()) {
     ecs_progress(world, GetFrameTime());
+    render_quadtree(root, world);
+    EndDrawing();
   }
 
   CloseWindow();
