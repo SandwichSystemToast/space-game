@@ -85,6 +85,7 @@ void camera_follow(ecs_iter_t *it) {
   cam2d->offset.y = GetScreenHeight() / 2.;
 
   v2 mouse_pos = c_camera_relative_mouse_position(cam);
+  // TODO: get global position from quadtree
   cam2d->target = Vector2Add(Vector2Scale(mouse_pos, cam->mouse_look_weight),
-                             transform->position);
+                             transform->local_position);
 }

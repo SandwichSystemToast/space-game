@@ -40,6 +40,8 @@ void move_player_character(ecs_iter_t *it) {
 
   character->velocity = Vector2Add(
       character->velocity, Vector2Scale(input->direction, acceleration));
-  transform->position =
-      Vector2Add(transform->position, Vector2Scale(character->velocity, dt));
+
+  // TODO: use info from quadtree
+  transform->local_position = Vector2Add(transform->local_position,
+                                         Vector2Scale(character->velocity, dt));
 }

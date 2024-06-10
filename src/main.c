@@ -6,7 +6,7 @@
 #include "raymath.h"
 
 #include "core/transform.h"
-#include "physics/collisions.h"
+// #include "physics/collisions.h"
 #include "physics/quadtree.h"
 #include "physics/shape.h"
 #include "player/character.h"
@@ -32,15 +32,17 @@ void render_player(ecs_iter_t *it) {
 
   EXPECT(it->count == 1, "Too many players to draw");
 
-  DrawLineV(
-      transform->position,
-      Vector2Add(transform->position, Vector2Scale(input->direction, 40.)),
-      BLUE);
-  DrawLineV(transform->position,
-            Vector2Add(transform->position, character->velocity), RED);
+  // TODO: get global local_position from quadtree
+  DrawLineV(transform->local_position,
+            Vector2Add(transform->local_position,
+                       Vector2Scale(input->direction, 40.)),
+            BLUE);
+  DrawLineV(transform->local_position,
+            Vector2Add(transform->local_position, character->velocity), RED);
 
-  DrawLineV(transform->position, c_camera_world_mouse_position(cam), BLUE);
-  DrawCircleV(transform->position, 1.5, WHITE);
+  DrawLineV(transform->local_position, c_camera_world_mouse_position(cam),
+            BLUE);
+  DrawCircleV(transform->local_position, 1.5, WHITE);
 }
 
 void render_shapes(ecs_iter_t *it) {
@@ -59,7 +61,7 @@ void render_shapes(ecs_iter_t *it) {
 
 int main(void) {
   ecs_world_t *world = ecs_init();
-  init_root(512);
+  init_root(1 << 10);
   printf("ROOT %d\n", root);
 
   // Init a rest debugger and a statistics monitor
@@ -87,7 +89,7 @@ int main(void) {
   ECS_SYSTEM(world, move_player_character, EcsOnUpdate, c_player_character,
              c_transform, c_player_input($));
 
-  ECS_SYSTEM(world, solve_collisions, EcsOnUpdate);
+  //   ECS_SYSTEM(world, solve_collisions, EcsOnUpdate);
 
   ECS_SYSTEM(world, render_player, EcsPostUpdate, c_player_character,
              c_player_input($), c_camera($));
@@ -109,8 +111,8 @@ int main(void) {
   c_physics_shape_circle_init(player_shape, 1.5, 32);
 
   c_transform *transform = ecs_get(world, player, c_transform);
-  transform->position.x = 0;
-  transform->position.y = 0;
+  transform->local_position.x = 0;
+  transform->local_position.y = 0;
 
   // asteroid 1
   ecs_entity_t asteroid1 = ecs_new_id(world);
@@ -118,8 +120,8 @@ int main(void) {
   ecs_set(world, asteroid1, c_physics_shape, {});
   ecs_set(world, asteroid1, c_transform, {});
   c_transform *asteroid1_transform = ecs_get(world, asteroid1, c_transform);
-  asteroid1_transform->position.x = 1.5;
-  asteroid1_transform->position.y = 1.5;
+  asteroid1_transform->local_position.x = 1.5;
+  asteroid1_transform->local_position.y = 1.5;
 
   c_physics_shape *asteroid1_shape = ecs_get(world, asteroid1, c_physics_shape);
   c_physics_shape_circle_init(asteroid1_shape, 4., 16);
@@ -134,8 +136,8 @@ int main(void) {
   c_physics_shape_circle_init(asteroid2_shape, 8.9, 64);
 
   c_transform *asteroid2_transform = ecs_get(world, asteroid2, c_transform);
-  asteroid2_transform->position.x = 7.5;
-  asteroid2_transform->position.y = 7.5;
+  asteroid2_transform->local_position.x = 7.5;
+  asteroid2_transform->local_position.y = 7.5;
 
   // camera
   c_camera *cam = ecs_singleton_get(world, c_camera);
@@ -151,14 +153,16 @@ int main(void) {
   add_entity(root, player, world);
 
   srand(0xb00b);
-  for (int i = 0; i < 500; i++) {
+  for (int i = 0; i < 1000; i++) {
     ecs_entity_t aaaa = ecs_new_id(world);
     ecs_set(world, aaaa, c_asteroid, {});
     ecs_set(world, aaaa, c_physics_shape, {});
     ecs_set(world, aaaa, c_transform, {});
     c_transform *aaaa_transform = ecs_get(world, aaaa, c_transform);
-    aaaa_transform->position.x = (float)rand() / RAND_MAX * 200.f;
-    aaaa_transform->position.y = (float)rand() / RAND_MAX * 200.f;
+    aaaa_transform->local_position.x = (float)(rand() << 1) / RAND_MAX * 500.f;
+    aaaa_transform->local_position.y = (float)(rand() << 1) / RAND_MAX * 500.f;
+    printf("ENTITY FUCK %f, %f\n", aaaa_transform->local_position.x,
+           aaaa_transform->local_position.y);
     add_entity(root, aaaa, world);
   }
 
